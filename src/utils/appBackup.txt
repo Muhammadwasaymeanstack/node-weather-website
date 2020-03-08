@@ -1,0 +1,91 @@
+const request = require('request')
+// const url = "https://api.darksky.net/forecast/5c191744a60f522c5d5560d0e1fca647/37.8267,-122.4233"
+// request({url:url,json:true },(error,response)=>{
+// if(error){
+//     console.log('unable to connect weather app')
+// }
+// else if(response.body.error){
+//     console.log('unable to find location')
+// }
+// else{
+//     console.log(esponse.body.daily.data[0].summary +' It is currently '+ response.body.currently.temperature + ' degrees tempreture. And '+ response.body.currently.precipProbability+'%' +' chances of rain')
+// }
+// })
+// ///geocode
+// const geoUrl ="https://api.mapbox.com/geocoding/v5/mapbox.places/Los%20Angeles.json?access_token=pk.eyJ1IjoibXVoYW1tYWR3YXNheWtoYW4iLCJhIjoiY2s2MjFwc2dhMDl1YTNtcDI2MGwzbWpnNCJ9.3AcuJ0KOxpg78vXdLAtEFA&limit=1"
+// request({url:geoUrl, json :true},(error,response)=>{
+// if(error){
+//     console.log('unable to find location' )
+// }
+
+// else if(response.body.features.length === 0){
+//     console.log('Incorrect location, Try some new')
+//     }   
+// else{
+//     const latitude  = response.body.features[0].center[1]
+//     const longitude = response.body.features[0].center[0]
+//     console(latitude,longitude)
+// }
+// })   
+
+//callback funtion for weather forecast
+const forecast = (latitude,longitude,callback)=>{
+    const url=  'https://api.darksky.net/forecast/5c191744a60f522c5d5560d0e1fca647/'+ latitude + ',' + longitude + ''
+    request ({ url: url,json: true},(error,response)=>{
+    if(error){
+        callback('unable to find weather updates',undefined)
+    } 
+    else if(response.body.error){
+        callback('unable to find location, try some other search',undefined)
+    }
+    else{
+        callback(response.body.daily.data[0].summary +' It is currently '+ response.body.currently.temperature + ' degrees tempreture. And '+ response.body.currently.precipProbability+'%' +' chances of rain')
+ }
+    
+})
+}
+
+//call back functon for geoLocation
+const geoCode = (address, callback)=>{
+const url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + address + '.json?access_token=pk.eyJ1IjoibXVoYW1tYWR3YXNheWtoYW4iLCJhIjoiY2s2N2JubGZhMDNpcDNtcXRjZm1qcGRvbCJ9.v1MZJnzLWCjxurnnv0zbJg&limit=1'
+request({url:url, json:true},(error,response)=>{
+    if(error){
+        callback('unable to find location',undefined)
+    }
+    // else if(response.body.features.length === 0){
+    //     callback('unable to find location,Try another search',undefined)
+    // }
+    else{
+        callback(undefined,{
+            latitude : response.body.features[0].center[1],
+            longitude : response.body.features[0].center[0],
+            location: response.body.features[0].place_name
+          
+        })
+    }
+}) 
+
+}
+
+const address = process.argv[2]
+if(!address){
+    console.log('Please provide address')
+}
+else{
+    geoCode(address, (error,data) => {
+        if (error){
+            return console.log(error)
+        }
+        
+        forecast(data.latitude,data.longitude,(error,forecastData)=>{
+            if (error){
+                return console.log(error)
+            }
+            console.log(data.location) 
+            console.log(forecastData)
+        
+        }) 
+    })
+
+}
+
